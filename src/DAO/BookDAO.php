@@ -2,57 +2,61 @@
 
 namespace Mybooks\DAO;
 
-use Doctrine\DBAL\Connection;
 use Mybooks\Domain\Book;
 
-class BookDAO
+class BookDAO extends DAO
 {
     /**
-     * Database connection
+     * Returns a book matching the supplied id.
      *
-     * @var \Doctrine\DBAL\Connection
+     * @param integer $id
+     *
+     * @return \Mybooks\Domain\Book|throws an exception if no matching book is found
      */
-    private $db;
+    public function find($id) {
+        $sql = "select * from book where book_id=?";
+        $row = $this->getDb()->fetchAssoc($sql, array($id));
 
-    /**
-     * Constructor
-     *
-     * @param \Doctrine\DBAL\Connection The database connection object
-     */
-    public function __construct(Connection $db) {
-        $this->db = $db;
+        if ($row)
+            return $this->buildDomainObject($row);
+        else
+            throw new \Exception("No book matching id " . $id);
     }
 
     /**
-     * Return a list of all books, sorted by date (most recent first).
+     * Creates a Book object based on a DB row.
+     *
+     * @param array $row The DB row containing Book data.
+	 *
+     * @return \Mybooks\Domain\Book
+     */
+    protected function buildDomainObject($row) {
+        $book = new Book();
+        $book->setId($row['book_id']);
+        $book->setTitle($row['book_title']);
+        $book->setIbsn($row['book_isbn']);
+        $book->setSummary($row['book_summary']);
+        $book->setAuth_id($row['auth_id']);
+        
+        return $book;
+    }
+    
+
+	/**
+     * Return a list of all books, sorted by id (most recent first).
      *
      * @return array A list of all books.
      */
     public function findAll() {
         $sql = "select * from book order by book_id desc";
-        $result = $this->db->fetchAll($sql);
+        $result = $this->getDb()->fetchAll($sql);
         
         // Convert query result to an array of domain objects
         $books = array();
         foreach ($result as $row) {
             $bookId = $row['book_id'];
-            $books[$bookId] = $this->buildBook($row);
+            $books[$bookId] = $this->buildDomainObject($row);
         }
         return $books;
-    }
-
-    /**
-     * Creates an Book object based on a DB row.
-     *
-     * @param array $row The DB row containing Book data.
-     * @return \Mybooks\Domain\Book
-     */
-    private function buildBook(array $row) {
-        $book = new Book();
-        $book->setId($row['book_id']);
-        $book->setTitle($row['book_title']);
-        $book->setSummary($row['book_summary']);
-        $book->setAuth_id($row['auth_id']);
-        return $book;
     }
 }

@@ -19,6 +19,13 @@ class Book
     private $title;
 
     /**
+     * Book ibsn.
+     *
+     * @var string
+     */
+    private $ibsn;
+
+    /**
      * Book content.
      *
      * @var string
@@ -46,6 +53,14 @@ class Book
 
     public function setTitle($title) {
         $this->title = $title;
+    }
+
+    public function getIbsn() {
+        return $this->ibsn;
+    }
+
+    public function setIbsn($ibsn) {
+        $this->ibsn = $ibsn;
     }
 
     public function getSummary() {
